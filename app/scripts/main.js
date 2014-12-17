@@ -21,6 +21,10 @@ R.ready(function() {
 	var year = date.slice(11,15);
 
 
+	// =====================================================
+	//	On button click, activate loader and check the user
+	// =====================================================
+
 	$('form .btn').click(function(){
 		console.log('clicked');
 		userName = $('#username').val();
@@ -32,11 +36,17 @@ R.ready(function() {
 			spinnerNumber: 8,
 			backgroundColor: '#428BCA',
 			top: '43%',
-			left: '46%'
+			left: '47%'
 		});
 
 		checkUser();
 	});
+
+	// ==========================================================
+	//	Check username with last.fm to see if the account exists.
+	//	If so, check user's playlists with Rdio.
+	//	If not, call noLastFm function below
+	// ==========================================================
 
 	var checkUser = function(){
 		$.ajax({
@@ -60,6 +70,28 @@ R.ready(function() {
 			} // end success
 		});
 	};
+
+	// ==============================================================
+	//	If the lastfm account provided doesn't exist or no name is 
+	//	entered, pop up an alert stating that an account is required
+	// ==============================================================
+
+  	var noLastFm = function(){
+  		swal({   
+  			title: "Sorry!",   
+  			text: "A Last.FM account is required. Hopefully Rdio will improve their API one day.",   
+  			type: "error",   
+  			confirmButtonText: "Got It" 
+  		});
+  		$('.overlay').fadeOut();
+		$('.overlay').empty();
+  	};
+
+	// ========================================================
+	//	Check the playlists in the user's Rdio account
+	//	If the user already has a My Year playlist, display it
+	//	Otherwise, call the getAlbums function
+	// ========================================================
 
 	var checkPlaylists = function(){
 		console.log('checkPlaylists is called');
@@ -85,6 +117,10 @@ R.ready(function() {
 		}); // end R.request
 	};
 
+	// =====================================================
+	//	Get the albums in the user's Rdio collection
+	// =====================================================
+
 	var getAlbums = function(){
 		console.log('getAlbums is called');
 		if (R.authenticated()) {
@@ -106,6 +142,12 @@ R.ready(function() {
 	  	};
 	};
 
+	// ===================================================================
+	//	Get the release dates of the albums in the user's Rdio collection
+	//	If the date is the current year, add the first song of the album
+	//	to an array
+	// ===================================================================
+
 	var getDates = function(response){
 		console.log('getDates called');
   		for (var i = 0; i < response.result.length; i++) {
@@ -123,7 +165,11 @@ R.ready(function() {
 	 	
   	}; // end getDates
 
-		
+	// =============================================================
+	//	Use lastfm to get the number of plays for each track in the 
+	//	Rdio track array. If the number of plays is greater than 9,
+	//	add the track to a new array
+	// =============================================================
 
 	var getPlays = function() {
 		console.log('getPlays called');
@@ -157,13 +203,22 @@ R.ready(function() {
 		}
 	};
 
+	// =====================================================
+	//	Sort the tracks in the lastfm array by playcount
+	// =====================================================
+
   	var sortArray = function(){
   		console.log('sortArray called');
   		lastFmTrackArray.sort(function(a,b) {
   			return b.track.userplaycount - a.track.userplaycount;
   		});	
   		getTracks();
-	 };
+	};
+
+	// ===============================================================
+	//	Search for each track in the lastfm array on Rdio and add the
+	//	resulting Rdio track object to an array
+	// ==============================================================
 
   	var getTracks = function(){
   		console.log('getTracks called');
@@ -197,6 +252,11 @@ R.ready(function() {
   		} // end if length > 0
   	}; // end getTracks
 
+  	// =================================================================
+	//	For each track in the search array returned above, pull out the 
+	//	track key and add it to an array
+	// =================================================================
+
   	var getKeys = function() {
   		console.log('getKeys called');
   		for (var i = 0; i < searchArray.length; i++) {
@@ -211,6 +271,10 @@ R.ready(function() {
   		console.log(trackKeyArray);
   		sortKeys();
   	}
+
+  	// ===================================================================
+	//	Sort the keys in the array to ensure that there are no duplicates
+	// ===================================================================
 
   	// === this is stupid, fix it ===
   	var sortKeys = function(){
@@ -230,9 +294,9 @@ R.ready(function() {
   		getPlaylists();
   	};
 
-  	var noLastFm = function(){
-  		alert('Sorry, a Last.Fm account is required!');
-  	};
+  	// ==============================================
+	//	Get the playlists in the user's Rdio account
+	// ==============================================
 
   	var getPlaylists = function(){
   		console.log('getPlaylists called');
@@ -248,6 +312,12 @@ R.ready(function() {
   			}
   		});
   	}; // end getPlaylists
+
+  	// ===================================================
+	//	Check to see if the user has a My Year playlist.
+	//	If so, call function to add new songs.
+	//	If not, create the playlist.
+	// ===================================================
 
   	var matchPlaylists = function(response){
   		for (var i = 0; i < response.result.length; i++) {
@@ -292,10 +362,18 @@ R.ready(function() {
 		
   	}; // end matchPlaylists
 
+  	// ======================================================
+	//	Add new songs with 10+ plays to an existing playlist
+	// ======================================================
+
 	// === This doesn't do anything yet, fix it ===  	
   	var addNewSongs = function(response) {
   		console.log('addnew is called');
   	} // end addNewSongs()
+
+  	// =========================================================
+	//	Display the playlist on the page and remove the loader.
+	// =========================================================
 
   	var displayPlaylist = function(embedUrl, url){
   		console.log('displayPlaylist is called');
